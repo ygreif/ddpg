@@ -1,12 +1,22 @@
+import random
 import memory
 import numpy as np
 
 
+class UniformExploration(object):
+
+    def __init__(self, scale, max_steps=400):
+        self.scale = scale
+        self.max_steps = max_steps
+
+    def explore(self, action):
+        return action + random.gauss(0, self.scale)
+
+
 class NoExploration(object):
 
-    def __init__(self, max_steps=11000, target=11000):
+    def __init__(self, max_steps=400):
         self.max_steps = max_steps
-        self.target = target
 
     def explore(self, action):
         return action
@@ -30,14 +40,13 @@ class Agent(object):
 
     def run_epoch(self, env, strat, learn=True):
         explore = strat.explore
-        target = strat.target
         max_steps = strat.max_steps
 
         done = False
         cum_reward = False
         steps = 0
         state = env.reset()
-        while not done and cum_reward < target and steps < max_steps:
+        while not done and steps < max_steps:
             action = explore(self.action(state))
             action = np.minimum(np.maximum(
                 action, env.action_space.low), env.action_space.high)
@@ -47,13 +56,11 @@ class Agent(object):
             self.memory.append(state, action, reward, next_state, done)
             if learn:
                 self.learn()
-                self.sample()
             cum_reward += reward
             state = next_state
             steps += 1
             if steps > 11000 and steps % 100 == 0:
                 print "On step", steps
-            env.render()
         return cum_reward
 
     def action(self, state):

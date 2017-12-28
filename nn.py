@@ -124,10 +124,10 @@ class Critic(object):
 
 class Actor(object):
 
-    def __init__(self, nn, parameters, discount=.95):
+    def __init__(self, nn, scaler, parameters, discount=.95):
         self.discount = tf.constant(discount)
 
-        self._setup_q_calculation(nn, parameters)
+        self._setup_q_calculation(nn, scaler)
         self._setup_train_step(nn, parameters)
         self.session = tf.Session()
         init = tf.global_variables_initializer()
@@ -144,9 +144,9 @@ class Actor(object):
         self.train_step = tf.train.AdamOptimizer(
             learning_rate=parameters['learning_rate']).apply_gradients(zip(self.gradients, self.trainable_variables))
 
-    def _setup_q_calculation(self, nn, parameters):
+    def _setup_q_calculation(self, nn, scaler):
         self.x = nn.x
-        self.act = tf.nn.tanh(nn.out) * parameters['dim']
+        self.act = tf.nn.tanh(nn.out) * scaler
 
     def action(self, state):
         return self.session.run(self.act, feed_dict={self.x: state})[0]
